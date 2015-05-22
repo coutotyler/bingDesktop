@@ -1,0 +1,26 @@
+#!/bin/bash
+
+case $1 in 
+	-h|--help) 
+		cat << EOF
+Usage:
+scpdiff <localfile> <remotefile>   <-- Compare two files
+scpdiff <localfile> <remoteserver> <-- Compare two files with the same path
+
+eg. 
+scpdiff /path/to/my/file myserver:/different/path/to/file
+scpdiff /path/to/my/file myserver
+scpdiff file server
+EOF
+		exit
+	;;
+esac
+
+localfile=$1
+remotefile=$2
+filename=${remotefile##*/}
+server=${remotefile%%:*}
+
+scp $remotefile /tmp/$server.$filename > /dev/null 2>&1 || ( echo "scp failed" && exit 1 )
+vimdiff $localfile /tmp/$server.$filename
+rm -f /tmp/$server.$filename || ( echo "rm file failed" && exit 1 )
