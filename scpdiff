@@ -16,11 +16,45 @@ EOF
 	;;
 esac
 
-localfile=$1
-remotefile=$2
+case $1 in 
+	/*)		# The first argument is a fully qualified path
+		localfile=${1##*/}
+		localpath=${1%/*}/
+		#echo "local full path"
+	;;
+	*)	# The first argument is a relative file path
+		localfile=${1##*/}
+		localpath=$(pwd)/${1%/*}/
+		#echo "local relative path" 
+	;;
+esac
+case $2 in
+	*:*)	# The second argument contains a file path
+		remotefile=${2##*/}
+		tmp=${2##*:} 
+		remotepath=${tmp%/*}/
+		remoteserver=${2%%:*}
+		#echo "remote file path"
+		;;
+	*)	# The second argument is just a server name
+		remotefile=$localfile
+		remotepath=$localpath
+		remoteserver=$2
+		#echo "remote no path"
+		;;
+esac
 filename=${remotefile##*/}
 server=${remotefile%%:*}
 
-scp $remotefile /tmp/$server.$filename > /dev/null 2>&1 || ( echo "scp failed" && exit 1 )
-vimdiff $localfile /tmp/$server.$filename
-rm -f /tmp/$server.$filename || ( echo "rm file failed" && exit 1 )
+#echo "
+#localfile = $localfile
+#localpath = $localpath
+#remotefile = $remotefile
+#tmp = $tmp
+#remotepath = $remotepath
+#remoteserver = $remoteserver
+#"
+
+scp $remoteserver:$remotepath$remotefile /tmp/$remoteserver.$remotefile > /dev/null 2>&1 || ( echo "scp failed" && exit 1 )
+vimdiff $localpath$localfile /tmp/$remoteserver.$remotefile
+rm -f /tmp/$remoteserver.$remotefile || ( echo "rm file failed" && exit 1 )
