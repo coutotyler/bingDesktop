@@ -3,15 +3,14 @@
 # ToDo: 
 # Add a revert option: Reverts to the previous day's image (If you don't
 # like today's)
-
 # Check the timestamp of the current picture. If it's from today, exit. 
 
-export DISPLAY=:0
+#export DISPLAY=:0
 
 fileName=$(echo "wallpaper_"$(date --rfc-3339 seconds)".jpg" | sed -e "s/ /T/g")
 saveDir="/home/tyler/Pictures/wallpaper/"
 logFile="bingDesktop.log"
-logDir="/home/tyler/Documents/logs"
+logDir="/home/tyler/Documents/logs/"
 timeOut=120
 
 if [ ! -d $saveDir ]; then
@@ -22,9 +21,14 @@ if [ ! -d $logDir ]; then
 	mkdir -p $logDir
 fi
 
-if [ ! -a $logFile ]; then
-	touch $logFile
-fi
+#if [ ! -a $logDir$logFile ]; then
+#	touch $logDir$logFile
+#fi
+
+# Setup DBUS environment variables
+PID=$(pgrep gnome-session)
+dbus=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$PID/environ | cut -d= -f2-)
+export DBUS_SESSION_BUS_ADDRESS=$dbus
 
 # Check network connection
 startTime=$SECONDS
