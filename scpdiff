@@ -43,8 +43,6 @@ case $2 in
 		#echo "remote no path"
 		;;
 esac
-filename=${remotefile##*/}
-server=${remotefile%%:*}
 
 #echo "
 #localfile = $localfile
@@ -55,6 +53,7 @@ server=${remotefile%%:*}
 #remoteserver = $remoteserver
 #"
 
-scp $remoteserver:$remotepath$remotefile /tmp/$remoteserver.$remotefile > /dev/null 2>&1 || ( echo "scp failed" && exit 1 )
+[[ -a $localpath$localfile ]] || { echo "Error: can't open local file"; exit 1; }
+scp $remoteserver:$remotepath$remotefile /tmp/$remoteserver.$remotefile > /dev/null 2>&1 || { echo 'Error: scp failed'; exit 1; }
 vimdiff $localpath$localfile /tmp/$remoteserver.$remotefile
-rm -f /tmp/$remoteserver.$remotefile || ( echo "rm file failed" && exit 1 )
+rm -f /tmp/$remoteserver.$remotefile || { echo 'Error: rm file failed'; exit 1; }
