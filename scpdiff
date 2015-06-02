@@ -20,13 +20,11 @@ case $1 in
 	/*)		# The first argument is a fully qualified path
 		localfile=${1##*/}
 		localpath=${1%/*}/
-		#echo "local full path"
 	;;
 	*)	# The first argument is a relative file path
 		a=./$1
 		localfile=${a##*/}
 		localpath=$(pwd)/${a%/*}/
-		#echo "local relative path" 
 	;;
 esac
 case $2 in
@@ -35,42 +33,31 @@ case $2 in
 		tmp=${2##*:} 
 		remotepath=${tmp%/*}/
 		remoteserver=${2%%:*}
-		#echo "remote file path"
 		;;
 	*)	# The second argument is just a server name
 		remotefile=$localfile
 		remotepath=$localpath
 		remoteserver=$2
-		#echo "remote no path"
 		;;
 esac
-
-#echo "
-#localfile = $localfile
-#localpath = $localpath
-#remotefile = $remotefile
-#tmp = $tmp
-#remotepath = $remotepath
-#remoteserver = $remoteserver
-#"
 
 # Test local file
 [[ -a $localpath$localfile ]] || { echo "Error: can't open local file"; exit 1; }
 
-# Copy remote file or fail
+# Copy remote file
 scp $remoteserver:$remotepath$remotefile /tmp/$remoteserver.$remotefile > /dev/null 2>&1 || { echo 'Error: scp failed'; exit 1; }
 
 # Store modification time
-#openModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
+openModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
 
 # Diff files
 vimdiff $localpath$localfile /tmp/$remoteserver.$remotefile
 
-# Check if file was modified 
-#closeModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
-#if [[ $closeModTime != $openModTime ]]; then # copy file to remote machine
-#	scp /tmp/$remoteserver.$remotefile $remoteserver:$remotepath$remotefile > /dev/null/ 2>&1 || { echo 'Error: remote update failed'; exit 1; }
-#fi
-#
+# Copy file to remote server if it was modified 
+closeModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
+if [[ $closeModTime != $openModTime ]]; then # copy file to remote machine
+	scp /tmp/$remoteserver.$remotefile $remoteserver:$remotepath$remotefile > /dev/null 2>&1 || { echo 'Error: remote update failed'; exit 1; }
+fi
+
 # Clean up
 rm -f /tmp/$remoteserver.$remotefile || { echo "Error: rm file /tmp/$remoteserver.$remotefile failed"; exit 1; }
