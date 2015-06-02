@@ -23,8 +23,9 @@ case $1 in
 		#echo "local full path"
 	;;
 	*)	# The first argument is a relative file path
-		localfile=${1##*/}
-		localpath=$(pwd)/${1%/*}/
+		a=./$1
+		localfile=${a##*/}
+		localpath=$(pwd)/${a%/*}/
 		#echo "local relative path" 
 	;;
 esac
@@ -53,7 +54,23 @@ esac
 #remoteserver = $remoteserver
 #"
 
+# Test local file
 [[ -a $localpath$localfile ]] || { echo "Error: can't open local file"; exit 1; }
+
+# Copy remote file or fail
 scp $remoteserver:$remotepath$remotefile /tmp/$remoteserver.$remotefile > /dev/null 2>&1 || { echo 'Error: scp failed'; exit 1; }
+
+# Store modification time
+#openModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
+
+# Diff files
 vimdiff $localpath$localfile /tmp/$remoteserver.$remotefile
-rm -f /tmp/$remoteserver.$remotefile || { echo 'Error: rm file failed'; exit 1; }
+
+# Check if file was modified 
+#closeModTime=$(stat -c %Y /tmp/$remoteserver.$remotefile)
+#if [[ $closeModTime != $openModTime ]]; then # copy file to remote machine
+#	scp /tmp/$remoteserver.$remotefile $remoteserver:$remotepath$remotefile > /dev/null/ 2>&1 || { echo 'Error: remote update failed'; exit 1; }
+#fi
+#
+# Clean up
+rm -f /tmp/$remoteserver.$remotefile || { echo "Error: rm file /tmp/$remoteserver.$remotefile failed"; exit 1; }
