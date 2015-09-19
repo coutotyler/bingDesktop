@@ -7,7 +7,6 @@ help stuff
 EOF
 }
 
-# The network settings are set to look at goodhouse (ie. not the ip or DNS name)
 PORT=49152
 HOST=goodhouse
 
