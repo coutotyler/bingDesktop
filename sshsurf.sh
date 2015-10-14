@@ -8,7 +8,7 @@ EOF
 }
 
 PORT=49152
-HOST=goodhouse
+HOST=machindo
 
 main() {
 	stop_tunnel
