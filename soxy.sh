@@ -3,7 +3,14 @@
 
 show_help() {
 	echo << EOF
-help stuff
+Set up netowrk proxy using ssh
+
+Usage: 
+	$0  			--> set up network proxy
+	$0 stop		--> stop network proxy
+Options: 
+	s|stop|-s|--stop	--> stop network proxy
+	-h|--help					--> show this help
 EOF
 }
 
@@ -14,8 +21,8 @@ main() {
 	stop_tunnel
 	find_port
 	start_tunnel
-	set_proxy
-	print_proxy_settings
+	set_proxy_$(uname)
+	print_proxy_settings_$(uname)
 }
 
 find_port() {
@@ -35,17 +42,26 @@ stop_tunnel() {
 	fi
 }
 
-set_proxy() {
+set_proxy_Linux() {
 	gsettings set org.gnome.system.proxy.socks host localhost
 	gsettings set org.gnome.system.proxy.socks port $PORT
 	gsettings set org.gnome.system.proxy mode 'manual'
 }
 
-unset_proxy() {
+set_proxy_Darwin() {
+	networksetup -setwebproxy Wi-Fi localhost $PORT
+	networksetup -setwebproxystate Wi-Fi on
+}
+
+unset_proxy_Linux() {
 	gsettings set org.gnome.system.proxy mode 'none' 
 }
 
-print_proxy_settings() {
+unset_proxy_Darwin() {
+	networksetup -setwebproxystate Wi-Fi off
+}
+
+print_proxy_settings_Linux() {
 	echo -n "Proxy mode: "; gsettings get org.gnome.system.proxy mode
 	if [ `gsettings get org.gnome.system.proxy mode` == "'manual'" ]; then
 		echo -n "Host: "; gsettings get org.gnome.system.proxy.socks host
@@ -53,16 +69,19 @@ print_proxy_settings() {
 	fi
 }
 
+print_proxy_settings_Darwin() {
+	networksetup -getwebproxy Wi-Fi
+}
+
 # Parse options
 #
 while [[ $# -ge 1 ]]; do
 	key="$1"
-	
 	case $key in
 		s|stop|-s|--stop)
-			unset_proxy
+			unset_proxy_$(uname)
 			stop_tunnel
-			print_proxy_settings
+			print_proxy_settings_$(uname)
 			exit
 			;;
 		-h|--help)
