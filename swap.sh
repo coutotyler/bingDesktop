@@ -19,7 +19,7 @@ main() {
 		vimdiff -n $file $file.rec
 		echo ".swp and .rec file retained" 
 	else
-		echo "No difference between current file and recovered file."
+		echo "No difference between current file and recovered file. Deleting swap file."
 		rm .$file.swp $file.rec
 	fi
 }
